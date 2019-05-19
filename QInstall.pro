@@ -30,9 +30,7 @@ SOURCES += \
         qinstall.cpp
 
 HEADERS += \
-        qinstall.h \
-    zstr/strict_fstream.hpp \
-    zstr/zstr.hpp
+        qinstall.h
 
 FORMS += \
         qinstall.ui
