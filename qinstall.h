@@ -18,6 +18,16 @@ public:
 private slots:
     void on_installbtn_clicked();
 
+    void on_btnRemove_clicked();
+
+    void on_btnAdd_clicked();
+
+    void on_btnCreate_clicked();
+
+    void on_btnOpen_clicked();
+
+    void on_btnDecompress_clicked();
+
 private:
     Ui::QInstall *ui;
 };
