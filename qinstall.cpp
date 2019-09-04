@@ -9,6 +9,14 @@
 #include "quazip/quazip.h"
 #include "quazip/quazipfile.h"
 #include "quazip/JlCompress.h"
+#include <windows.h>
+#include <string.h>
+
+#include <QDebug>
+
+//https://www.strchr.com/creating_self-extracting_executables
+
+int ReadFromExeFile();
 
 QByteArray fileChecksum(const QString &fileName);
 
@@ -107,6 +115,17 @@ void QInstall::on_btnCreate_clicked()
             file.close();
         }
     }
+
+    if(ui->chkExe->isChecked()) {
+        QString exeFile = saveFile.section(".", 0,0) + ".exe";
+        BYTE buff[4096];
+        wchar_t wzcmd[4096] = {0};
+        GetModuleFileNameA(NULL, (CHAR*)buff, sizeof(buff));
+        QString cmd = QString("/c copy /b '%1'+'%2' '%3'").arg(QString::fromLocal8Bit((char*)buff)).arg(saveFile.replace("/","\\")).arg(exeFile.replace("/","\\"));
+        cmd.replace("'", QString((char)34));
+        cmd.toWCharArray(wzcmd);
+        ShellExecuteA(NULL, "open", "cmd", cmd.toUtf8(), NULL, SW_HIDE);
+    }
 }
 
 QByteArray fileChecksum(const QString &fileName)
@@ -143,4 +162,103 @@ void QInstall::on_btnDecompress_clicked()
     QStringList list = JlCompress::getFileList(zipFile);
     JlCompress::extractFiles(zipFile, list, dir);
     QMessageBox::information(this, "Notice", "Decompress success.");
+}
+
+void QInstall::on_btnBrowse_clicked()
+{
+    QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Exe File(*.exe)");
+    ui->editFile->setText(file);
+
+    QStringList list = JlCompress::getFileList(file);
+
+    for(int i = 0 ; i < list.size() ; i++) {
+
+        QTableWidgetItem *item = new QTableWidgetItem(list.at(i));
+        ui->filelist->insertRow(i);
+        ui->filelist->setItem(i,0,item);
+        ui->filelist->setColumnWidth(0, ui->filelist->width());
+    }
+}
+
+void QInstall::on_btnInstall_clicked()
+{
+//    QString zipFile = ui->editFile->text();
+//    if(zipFile == "")
+//        return;
+
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                      "",
+                                                      QFileDialog::ShowDirsOnly
+                                                      | QFileDialog::DontResolveSymlinks);
+    if(dir == "")
+        return;
+
+    ReadFromExeFile();
+    QString zipFile = QCoreApplication::applicationDirPath() + "./1.zip";
+
+    QStringList list = JlCompress::getFileList(zipFile);
+    JlCompress::extractFiles(zipFile, list, dir);
+    QMessageBox::information(this, "Notice", "Install success.");
+}
+
+int ReadFromExeFile() {
+    BYTE buff[4096];
+    DWORD read;
+    BYTE* data;
+
+    // Open exe file
+    GetModuleFileNameA(NULL, (CHAR*)buff, sizeof(buff));
+    //cout << buff << endl;
+
+    HANDLE hFile = CreateFileA((CHAR*)buff, GENERIC_READ, FILE_SHARE_READ,
+        NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (INVALID_HANDLE_VALUE == hFile)
+        return ERROR;
+
+    ReadFile(hFile, buff, sizeof(buff), &read, NULL);
+    IMAGE_DOS_HEADER* dosheader = (IMAGE_DOS_HEADER*)buff;
+
+    // Locate PE header
+    IMAGE_NT_HEADERS32* header = (IMAGE_NT_HEADERS32*)(buff + dosheader->e_lfanew);
+    if (dosheader->e_magic != IMAGE_DOS_SIGNATURE || header->Signature != IMAGE_NT_SIGNATURE) {
+        CloseHandle(hFile);
+        return ERROR;
+    }
+
+    // For each section
+    IMAGE_SECTION_HEADER* sectiontable = (IMAGE_SECTION_HEADER*)((BYTE*)header + sizeof(IMAGE_NT_HEADERS32));
+    DWORD maxpointer = 0, exesize = 0;
+    for (int i = 0; i < header->FileHeader.NumberOfSections; i++) {
+        if (sectiontable->PointerToRawData > maxpointer) {
+            maxpointer = sectiontable->PointerToRawData;
+            exesize = sectiontable->PointerToRawData + sectiontable->SizeOfRawData;
+        }
+        sectiontable++;
+    }
+
+    // Seek to the overlay
+    DWORD filesize = GetFileSize(hFile, NULL);
+    SetFilePointer(hFile, exesize, NULL, FILE_BEGIN);
+    data = (BYTE*)malloc(filesize - exesize + 1);
+    ReadFile(hFile, data, filesize - exesize, &read, NULL);
+    CloseHandle(hFile);
+
+    //cout << filesize << " " << exesize << endl;
+
+    // Process the data
+    if (filesize != exesize) {
+        *(data + (filesize - exesize)) = '\0';
+        //cout << data << endl;
+
+        HANDLE hFile1 = CreateFileA((CHAR*)"1.zip", GENERIC_WRITE, 0,
+            NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (INVALID_HANDLE_VALUE == hFile1)
+            return ERROR;
+        DWORD writtensize;
+        WriteFile(hFile1, data, filesize - exesize + 1, &writtensize, NULL);
+        CloseHandle(hFile1);
+    }
+
+    free(data);
+    return 0;
 }

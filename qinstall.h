@@ -28,6 +28,10 @@ private slots:
 
     void on_btnDecompress_clicked();
 
+    void on_btnBrowse_clicked();
+
+    void on_btnInstall_clicked();
+
 private:
     Ui::QInstall *ui;
 };
