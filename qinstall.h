@@ -32,6 +32,9 @@ private slots:
 
     void on_btnInstall_clicked();
 
+ //   int getExecutablePath(char* szBuff, unsigned long ulBufferLen);
+ //   int linuxextract(QString file);
+
 private:
     Ui::QInstall *ui;
 };

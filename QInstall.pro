@@ -55,7 +55,8 @@ SOURCES += \
     zlib/inftrees.c \
     zlib/trees.c \
     zlib/uncompr.c \
-    zlib/zutil.c
+    zlib/zutil.c \
+    winfiles.cpp
 
 HEADERS += \
         qinstall.h \
@@ -85,7 +86,8 @@ HEADERS += \
     zlib/zconf.h \
     zlib/zlib.h \
     zlib/zutil.h \
-    zlib/deflate.h
+    zlib/deflate.h \
+    linuxfiles.h
 
 FORMS += \
         qinstall.ui

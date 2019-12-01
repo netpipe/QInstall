@@ -1,3 +1,5 @@
+#include <QMainWindow>
+#include "qinstall.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -6,10 +8,16 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
+
+
+#include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 //cat main test.txt test.zip > combined
 //./combined apple // string to parse
 
-int getExecutablePath(char* szBuff, unsigned long ulBufferLen)
+int QInstall::getExecutablePath(char* szBuff, unsigned long ulBufferLen)
 {
     if (szBuff == NULL || ulBufferLen < 256) {
         return -1;
@@ -20,20 +28,21 @@ int getExecutablePath(char* szBuff, unsigned long ulBufferLen)
     return 0;
 }
 
-int mainextract(int argc, char *argv[])
+int QInstall::linuxextract(QString file)
 {
-    if (argc != 2) {
-        puts("Not found splitter argument\n");
-        return -1;
-    }
+    QString splitstr="apple";
 
-    char *szSplitter = argv[1];
-    size_t nSplitterLen = strlen(szSplitter);
-    char szPath[4096] = {0,};
+ QString szSplitter=file;
+ size_t nSplitterLen = szSplitter.length();
+ char szPath[4096] = {0,};
 
-    if (getExecutablePath(szPath, sizeof(szPath)) < 0) {
-        puts("Fail to get the executable file path\n");
-    }
+  //  char *szSplitter = argv[1];
+ //   size_t nSplitterLen = strlen(szSplitter);
+  //  char szPath[4096] = {0,};
+
+ //   if (getExecutablePath(szPath, sizeof(szPath)) < 0) {
+  //      puts("Fail to get the executable file path\n");
+  //  }
 
     int hExeFile = open(szPath, O_RDONLY);
     if (hExeFile < 0) {
