@@ -1,4 +1,4 @@
-#ifdef WINDOWS
+#ifdef Q_OS_WIN
 int ReadFromExeFile() {
     BYTE buff[4096];
     DWORD read;

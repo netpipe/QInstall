@@ -9,18 +9,19 @@
 #include "quazip/quazip.h"
 #include "quazip/quazipfile.h"
 #include "quazip/JlCompress.h"
+#include <QProcess>
+
+#include <string.h>
+#include <QDebug>
+
+#define LINUX
+
+#include "linuxfiles.h" //https://www.strchr.com/creating_self-extracting_executables
+
 
 #ifdef WINDOWS
 #include <windows.h>
 #endif
-
-#include <string.h>
-
-#include <QDebug>
-
-//https://www.strchr.com/creating_self-extracting_executables
-
-#include "linuxfiles.h"
 
 int ReadFromExeFile();
 
@@ -121,7 +122,7 @@ void QInstall::on_btnCreate_clicked()
             file.close();
         }
     }
-#ifdef WINDOWS
+#ifdef Q_OS_WIN
     if(ui->chkExe->isChecked()) {
         QString exeFile = saveFile.section(".", 0,0) + ".exe";
         BYTE buff[4096];
@@ -132,6 +133,17 @@ void QInstall::on_btnCreate_clicked()
         cmd.toWCharArray(wzcmd);
         ShellExecuteA(NULL, "open", "cmd", cmd.toUtf8(), NULL, SW_HIDE);
     }
+#endif
+
+#ifdef Q_OS_UNIX
+  //  QProcess process;
+//    //cat main test.txt test.zip > combined
+  //  process.start("cat", QStringList() << "1.zip > marker.txt >> QInstall > combined ");
+//make marker.txt file with "apple" or split string
+
+
+//QProcess::execute("cat 1.zip >> marker.txt >> QInstall > combined");
+
 #endif
 }
 
@@ -189,9 +201,9 @@ void QInstall::on_btnBrowse_clicked()
 
 void QInstall::on_btnInstall_clicked()
 {
-//    QString zipFile = ui->editFile->text();
-//    if(zipFile == "")
-//        return;
+    QString exe = ui->editFile->text();
+    if(exe == "")
+        return;
 
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
                                                       "",
@@ -199,9 +211,16 @@ void QInstall::on_btnInstall_clicked()
                                                       | QFileDialog::DontResolveSymlinks);
     if(dir == "")
         return;
-#ifdef WINDOWS
-    ReadFromExeFile();
+#ifdef Q_OS_WIN
+    ReadFromExeFile(exe);
 #endif
+
+#ifdef Q_OS_UNIX
+    linuxextract(exe);
+#endif
+
+linuxextract(exe);
+
     QString zipFile = QCoreApplication::applicationDirPath() + "./1.zip";
 
     QStringList list = JlCompress::getFileList(zipFile);

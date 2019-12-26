@@ -1,7 +1,9 @@
+#ifdef Q_OS_UNIX
 #ifndef LINUXFILES_H
 #define LINUXFILES_H
 
 #include <QMainWindow>
+
 #include "qinstall.h"
 #include <stdio.h>
 #include <string.h>
@@ -140,3 +142,4 @@ int linuxextract(QString file)
 
 
 #endif // LINUXFILES_H
+#endif
