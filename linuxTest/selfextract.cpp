@@ -5,9 +5,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <iostream>
+#include <fstream>
 
+using namespace std;
+
+//echo -n apple > test.txt
 //cat main test.txt test.zip > combined
 //./combined apple // string to parse
+
+
 
 int getExecutablePath(char* szBuff, unsigned long ulBufferLen)
 {
@@ -20,7 +27,7 @@ int getExecutablePath(char* szBuff, unsigned long ulBufferLen)
     return 0;
 }
 
-int mainextract(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if (argc != 2) {
         puts("Not found splitter argument\n");
@@ -81,7 +88,7 @@ int mainextract(int argc, char *argv[])
         return -1;
     }
 
-    int hExtractFile = open("extract.zip", O_WRONLY|O_CREAT);
+    int hExtractFile = open("extract.zip", O_WRONLY|O_CREAT, 0644);
     if (hExtractFile < 0) {
         puts("Unable to create the file extracted\n");
         munmap((void *)pchExeFileMap, lExeFileSize);
@@ -102,7 +109,7 @@ int mainextract(int argc, char *argv[])
 
     close(hExtractFile);
 
-    int hOriginalExeExeFile = creat("original-executable", O_WRONLY|O_CREAT );
+    int hOriginalExeExeFile = creat("original-executable", 0755);//hOriginalExeExeFile = creat("original-executable", O_WRONLY|O_CREAT );
     if (hOriginalExeExeFile < 0) {
         puts("Unable to create the executable file stripped append data\n");
         munmap((void *)pchExeFileMap, lExeFileSize);
@@ -121,6 +128,26 @@ int mainextract(int argc, char *argv[])
     close(hOriginalExeExeFile);
     munmap((void *)pchExeFileMap, lExeFileSize);
     close(hExeFile);
+
+
+//ifstream srcfile("extract.zip");
+//ofstream tarfile("fixed.zip");
+
+//const int maxsize = 2000;
+//char buf[maxsize];
+
+// Skip first line
+//if ( !srcfile.eof() )
+//srcfile.getline( buf, maxsize, ' ' );
+
+// Copy contents
+//while( !srcfile.eof() )
+//{
+//srcfile.getline(buf, maxsize);
+//tarfile << buf << endl;
+//}
+
+
     puts("Successfully extracted\n");
     return 0;
 }

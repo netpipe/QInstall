@@ -1,4 +1,4 @@
-#ifdef Q_OS_UNIX
+#ifdef linux
 #ifndef LINUXFILES_H
 #define LINUXFILES_H
 
