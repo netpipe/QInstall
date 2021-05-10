@@ -219,8 +219,6 @@ void QInstall::on_btnInstall_clicked()
     linuxextract(exe);
 #endif
 
-linuxextract(exe);
-
     QString zipFile = QCoreApplication::applicationDirPath() + "./1.zip";
 
     QStringList list = JlCompress::getFileList(zipFile);
