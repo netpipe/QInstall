@@ -91,7 +91,7 @@ void QInstall::on_btnAdd_clicked()
                               this,
                               "Select one or more files to open",
                               "",
-                              "All Files (*.*)");
+                              "All Files (*)");
 
     int nCurIndex = ui->tblFileList->rowCount();
 
@@ -105,25 +105,41 @@ void QInstall::on_btnAdd_clicked()
 
 void QInstall::on_btnCreate_clicked()
 {
-    QString saveFile = QFileDialog::getSaveFileName(this, "Select file to save","", "Zip File(*.zip)");
+    //make archive to append
+    QString saveFile = "1.zip" ; //QFileDialog::getSaveFileName(this, "Select file to save","", "Zip File(*.zip)");
     QStringList list;
     for(int i = 0 ; i < ui->tblFileList->rowCount() ; i++) {
         QTableWidgetItem *item = ui->tblFileList->item(i,0);
         list.append(item->text());
     }
+
+    if (saveFile.toLatin1() != ""){
+    //get all the files from list
+    //this should compress the archive with the md5 sum file inside of the archive.
     if(JlCompress::compressFiles(saveFile, list)){
         QMessageBox::information(this, "Notice", "Compression success.");
         QByteArray checksum = fileChecksum(saveFile);
+     //   QString checkFile = saveFile.section(".",0,0) + ".md5";
+      // QString checkFile = saveFile.section("md5sum.txt");
+
+        QString checkFile = "md5sum.txt";
         if(ui->chkMd5->isChecked()) {
-            QString checkFile = saveFile.section(".",0,0) + ".md5";
+           // QFile file(checkFile);
             QFile file(checkFile);
             file.open(QIODevice::WriteOnly);
             file.write(checksum);
             file.close();
         }
+
+        QStringList list;
+        list.append(saveFile);
+        list.append(checkFile);
+        JlCompress::compressFiles("finalmd5.zip", list); // make double zip with included md5sum
     }
+
+    //append to binary
 #ifdef Q_OS_WIN
-    if(ui->chkExe->isChecked()) {
+    if( ui->chkExe->isChecked() ) {
         QString exeFile = saveFile.section(".", 0,0) + ".exe";
         BYTE buff[4096];
         wchar_t wzcmd[4096] = {0};
@@ -135,16 +151,25 @@ void QInstall::on_btnCreate_clicked()
     }
 #endif
 
+
 #ifdef Q_OS_UNIX
-  //  QProcess process;
-//    //cat main test.txt test.zip > combined
-  //  process.start("cat", QStringList() << "1.zip > marker.txt >> QInstall > combined ");
-//make marker.txt file with "apple" or split string
+    //  QProcess process;
+    //  cat main test.txt test.zip > combined
+    //  process.start("cat", QStringList() << "1.zip > marker.txt >> QInstall > combined ");
 
 
-//QProcess::execute("cat 1.zip >> marker.txt >> QInstall > combined");
+    //make marker.txt file with "apple" or split string
+    //QProcess::execute("echo apples > marker.txt");
 
+        if( ui->chkExe->isChecked() ) {
+            //copy the binary
+        //    QString bname="Installer";
+        }
+    QProcess::execute( QString('cat finalmd5.zip >> marker.txt >> QInstall > combined') ); // might not be working yet
+//rename binary after
 #endif
+
+        }
 }
 
 QByteArray fileChecksum(const QString &fileName)
@@ -161,12 +186,16 @@ QByteArray fileChecksum(const QString &fileName)
 
 void QInstall::on_btnOpen_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Zip File(*.zip)");
-    ui->editZipFilePath->setText(file);
+//    QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Zip File(*.zip)");
+//    ui->editZipFilePath->setText(file);
 }
 
 void QInstall::on_btnDecompress_clicked()
 {
+
+    QString saveFile = QFileDialog::getSaveFileName(this, "Select file to save","", "Zip File(*.zip)");
+
+
     QString zipFile = ui->editZipFilePath->text();
     if(zipFile == "")
         return;
@@ -175,6 +204,9 @@ void QInstall::on_btnDecompress_clicked()
                                                       "",
                                                       QFileDialog::ShowDirsOnly
                                                       | QFileDialog::DontResolveSymlinks);
+
+
+
     if(dir == "")
         return;
 
@@ -185,23 +217,59 @@ void QInstall::on_btnDecompress_clicked()
 
 void QInstall::on_btnBrowse_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Exe File(*.exe)");
-    ui->editFile->setText(file);
+    #ifdef Q_OS_WIN
+        QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Exe File(*.*)");
+        ReadFromExeFile(file);
 
-    QStringList list = JlCompress::getFileList(file);
+    #endif
 
-    for(int i = 0 ; i < list.size() ; i++) {
+    #ifdef Q_OS_UNIX
+        QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Exe File(*)");
+        linuxextract(file);
 
-        QTableWidgetItem *item = new QTableWidgetItem(list.at(i));
+    #endif
+
+
+
+      QString dir = QCoreApplication::applicationDirPath();
+//
+           ui->editFile->setText(file);
+      QString zipFile = dir.toLatin1() + "/finalmd5.zip";
+
+      QStringList list = JlCompress::getFileList(zipFile); //verify md5sum is present to validate the install file
+
+      JlCompress::extractFiles(zipFile, list, dir);
+
+      QByteArray checksum = fileChecksum("1.zip");
+        ui->editFile->setText(checksum);
+
+      QString zipFile1 = dir.toLatin1() + "/1.zip";
+      QStringList list1 = JlCompress::getFileList(zipFile1);
+      JlCompress::extractFiles(zipFile1, list1, dir);
+   //   QMessageBox::information(this, "Notice", "Install success.");
+      //get md5 from zip archive and compare sums
+
+
+    for(int i = 0 ; i < list1.size() ; i++) {
+        QTableWidgetItem *item = new QTableWidgetItem(list1.at(i));
         ui->filelist->insertRow(i);
         ui->filelist->setItem(i,0,item);
         ui->filelist->setColumnWidth(0, ui->filelist->width());
     }
+
 }
 
 void QInstall::on_btnInstall_clicked()
 {
-    QString exe = ui->editFile->text();
+
+    QString files = QFileDialog::getOpenFileName(
+                              this,
+                              "Select one or more files to open",
+                              "",
+                              "All Files (*.*)");
+
+    QString exe = files.toLatin1(); //ui->editFile->text();
+
     if(exe == "")
         return;
 
@@ -211,6 +279,7 @@ void QInstall::on_btnInstall_clicked()
                                                       | QFileDialog::DontResolveSymlinks);
     if(dir == "")
         return;
+
 #ifdef Q_OS_WIN
     ReadFromExeFile(exe);
 #endif
@@ -219,11 +288,47 @@ void QInstall::on_btnInstall_clicked()
     linuxextract(exe);
 #endif
 
-    QString zipFile = QCoreApplication::applicationDirPath() + "./1.zip";
 
-    QStringList list = JlCompress::getFileList(zipFile);
+  //  QString zipFile = QCoreApplication::applicationDirPath() + "./finalmd5.zip";
+    QString zipFile = dir.toLatin1() + "/finalmd5.zip";
+
+    QStringList list = JlCompress::getFileList(zipFile); //verify md5sum is present to validate the install file
+
+    // QString md5sum;
+    //while ( !list.end() ) {
+    //   md5sum =   list.pop_front();
+    //}
+
     JlCompress::extractFiles(zipFile, list, dir);
+
+
+    //md5 finder
+//    QFile MyFile(file.toLatin1());
+//    MyFile.open(QIODevice::ReadWrite);
+//    QTextStream in (&MyFile);
+//    QString line;
+//    QStringList list;
+//    QStringList nums;
+//    QRegExp rx("[:]");
+//    do {
+//        line = in.readLine();
+//        if (line.contains(":")) {
+//            list = line.split(rx);
+//            nums.append(list.at(1).toLatin1());
+//        }
+//    } while (!line.isNull());
+//    MyFile.close();
+
+    QByteArray checksum = fileChecksum(dir.toLatin1() + "1.zip");
+    //  QString checkFile = saveFile.section(".",0,0) + "1.zip";
+
+
+    QString zipFile1 = QCoreApplication::applicationDirPath() + "/1.zip";
+    QStringList list1 = JlCompress::getFileList(zipFile1);
+    JlCompress::extractFiles(zipFile1, list1, dir);
     QMessageBox::information(this, "Notice", "Install success.");
+    //get md5 from zip archive and compare sums
+
 }
 
 #include "winfiles.cpp"

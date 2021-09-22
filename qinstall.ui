@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>693</width>
-    <height>466</height>
+    <width>824</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,6 +50,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="btnBrowse">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>Browse</string>
             </property>
@@ -94,34 +97,11 @@
         <string>Create</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="3" column="0">
-         <widget class="QGroupBox" name="groupBox_2">
-          <property name="title">
-           <string>GroupBox</string>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="btnAdd">
+          <property name="text">
+           <string>Add File</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QCheckBox" name="chkMd5">
-             <property name="text">
-              <string>create md5 sum</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="chkExe">
-             <property name="text">
-              <string>Append To Executable</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_2">
-             <property name="text">
-              <string>Compress files</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </widget>
         </item>
         <item row="3" column="1">
@@ -131,6 +111,45 @@
           </property>
          </widget>
         </item>
+        <item row="3" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Options</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QCheckBox" name="chkMd5">
+             <property name="text">
+              <string>create md5 sum</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="chkExe">
+             <property name="text">
+              <string>Append To New Executable</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Compress files</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="1" column="1">
          <widget class="QPushButton" name="btnRemove">
           <property name="text">
@@ -138,14 +157,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="btnAdd">
-          <property name="text">
-           <string>Add File</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" rowspan="2">
+        <item row="0" column="0" rowspan="3">
          <widget class="QTableWidget" name="tblFileList">
           <column>
            <property name="text">
@@ -163,34 +175,37 @@
        <widget class="QPushButton" name="btnDecompress">
         <property name="geometry">
          <rect>
-          <x>220</x>
-          <y>110</y>
-          <width>91</width>
-          <height>27</height>
+          <x>60</x>
+          <y>50</y>
+          <width>181</width>
+          <height>121</height>
          </rect>
         </property>
         <property name="text">
-         <string>Decompress</string>
+         <string>Decompress ZIP</string>
         </property>
        </widget>
        <widget class="QPushButton" name="btnOpen">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
-          <x>220</x>
-          <y>70</y>
+          <x>350</x>
+          <y>340</y>
           <width>91</width>
           <height>27</height>
          </rect>
         </property>
         <property name="text">
-         <string>Open</string>
+         <string>test</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="editZipFilePath">
         <property name="geometry">
          <rect>
-          <x>340</x>
-          <y>70</y>
+          <x>440</x>
+          <y>340</y>
           <width>221</width>
           <height>27</height>
          </rect>
@@ -206,8 +221,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>693</width>
-     <height>23</height>
+     <width>824</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
