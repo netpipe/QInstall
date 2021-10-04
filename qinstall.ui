@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -54,7 +54,7 @@
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Browse</string>
+             <string>Inspect</string>
             </property>
            </widget>
           </item>
@@ -129,6 +129,9 @@
            </item>
            <item>
             <widget class="QCheckBox" name="chkExe">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Append To New Executable</string>
              </property>
@@ -140,10 +143,10 @@
            <item>
             <widget class="QCheckBox" name="checkBox_2">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="text">
-              <string>Compress files</string>
+              <string>Compress Only</string>
              </property>
             </widget>
            </item>
@@ -170,13 +173,13 @@
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>decompressor</string>
+        <string>Archiver</string>
        </attribute>
        <widget class="QPushButton" name="btnDecompress">
         <property name="geometry">
          <rect>
-          <x>60</x>
-          <y>50</y>
+          <x>280</x>
+          <y>110</y>
           <width>181</width>
           <height>121</height>
          </rect>

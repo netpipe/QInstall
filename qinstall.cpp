@@ -165,7 +165,15 @@ void QInstall::on_btnCreate_clicked()
             //copy the binary
         //    QString bname="Installer";
         }
-    QProcess::execute( QString('cat finalmd5.zip >> marker.txt >> QInstall > combined') ); // might not be working yet
+
+
+   //     QString dir = QCoreApplication::applicationDirPath();
+
+//    QProcess::execute( QString('cat finalmd5.zip >> marker.txt >> QInstall > combined') ); // might not be working yet
+ //   QProcess::execute( "xterm -e 'cat finalmd5.zip >> marker.txt'" ); // might not be working yet
+ //   QProcess::execute( "xterm -e 'cat marker.txt >> QInstall'" );
+ //   QProcess::execute( "xterm -e 'cat QInstall > combined'" );
+    QProcess::execute("bash", QStringList() << "-c" << "cp QInstall NEWInstaller; cat NEWInstaller marker.txt finalmd5.zip  > cInstall;chmod +x cInstall");
 //rename binary after
 #endif
 
@@ -266,7 +274,7 @@ void QInstall::on_btnInstall_clicked()
                               this,
                               "Select one or more files to open",
                               "",
-                              "All Files (*.*)");
+                              "All Files (*)");
 
     QString exe = files.toLatin1(); //ui->editFile->text();
 
