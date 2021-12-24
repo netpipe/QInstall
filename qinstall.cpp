@@ -19,7 +19,7 @@
 #include "linuxfiles.h" //https://www.strchr.com/creating_self-extracting_executables
 
 
-#ifdef WINDOWS
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
@@ -227,8 +227,8 @@ void QInstall::on_btnBrowse_clicked()
 {
     #ifdef Q_OS_WIN
         QString file = QFileDialog::getOpenFileName(this, "Select file to open","", "Exe File(*.*)");
-        ReadFromExeFile(file);
-
+  //      ReadFromExeFile(file);
+        ReadFromExeFile();
     #endif
 
     #ifdef Q_OS_UNIX
@@ -289,7 +289,8 @@ void QInstall::on_btnInstall_clicked()
         return;
 
 #ifdef Q_OS_WIN
-    ReadFromExeFile(exe);
+  //  ReadFromExeFile(exe);
+    ReadFromExeFile();
 #endif
 
 #ifdef Q_OS_UNIX

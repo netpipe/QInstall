@@ -1,11 +1,11 @@
 #ifdef Q_OS_WIN
-int ReadFromExeFile() {
+int ReadFromExeFile() { //extracts to 1.zip
     BYTE buff[4096];
     DWORD read;
     BYTE* data;
 
     // Open exe file
-    GetModuleFileNameA(NULL, (CHAR*)buff, sizeof(buff));
+    GetModuleFileNameA(NULL, (CHAR*)buff, sizeof(buff)); // reads from itself finds its own filename
     //cout << buff << endl;
 
     HANDLE hFile = CreateFileA((CHAR*)buff, GENERIC_READ, FILE_SHARE_READ,
