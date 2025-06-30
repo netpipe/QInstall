@@ -96,7 +96,7 @@ private slots:
         QString outPath = pathEdit->text();
         QDir(outPath).mkpath(".");
         QString zipName = archive.name.isEmpty() ? "payload.zip" : archive.name;
-        QString tmpZip = QDir::temp().filePath(zipName);
+        QString tmpZip = "/tmp/payload.zip";
         qDebug() << "Writing ZIP to:" << tmpZip;
 
         QFile zip(tmpZip);
@@ -231,7 +231,7 @@ private:
         QString save=QFileDialog::getSaveFileName(this,"Save As","installer","All (*)");
         if (save.isEmpty()) return;
 
-        QString tmpZip = QDir::temp().filePath("payload.zip");
+        QString tmpZip = "/tmp/payload.zip";
         QStringList args;
         if (!passEdit->text().isEmpty()) {
             args << "-r" << "-P" << passEdit->text();
@@ -255,15 +255,14 @@ private:
         QFile self(QCoreApplication::applicationFilePath());
         if (!self.open(QIODevice::ReadOnly)) return;
         out.write(self.readAll());
+        quint64 off = out.pos();
         QDataStream ds(&out);
         ds.setVersion(QDataStream::Qt_5_12);
         ds << QFileInfo(tmpZip).fileName() << quint64(data.size()) << md;
-        out.write(data);
-        out.write(MAGIC_FOOTER,4);
-        quint64 off = out.pos() - (data.size()+FOOTER_SIZE);
-        QDataStream ds2(&out);
-        ds2.setVersion(QDataStream::Qt_5_12);
-        ds2 << off;
+        ds.writeRawData(data.constData(), data.size());
+        ds.writeRawData(MAGIC_FOOTER,4);
+        //quint64 off = out.pos() - (data.size()+FOOTER_SIZE);
+        ds << off;
         out.close();
         QMessageBox::information(this,"Done","Installer created");
     }
