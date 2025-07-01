@@ -33,5 +33,5 @@ HEADERS += \
 
 FORMS += \
 
-
+RESOURCES += resource.qrc
 DEFINES +=

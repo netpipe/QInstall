@@ -61,7 +61,8 @@ public:
         resize(500,400);
 
         bgLabel = new QLabel(this);
-        bgLabel->setPixmap(QPixmap(":/background.jpg").scaled(size()));
+        bgLabel->resize(500,400);
+        bgLabel->setPixmap(QPixmap(":/background.png").scaled(size()));
         bgLabel->setScaledContents(true);
 
         pathEdit = new QLineEdit(QDir::homePath(), this);
@@ -160,6 +161,11 @@ public:
         resize(500,400);
         setAcceptDrops(true);
 
+        bgLabel = new QLabel(this);
+        bgLabel->resize(500,400);
+        bgLabel->setPixmap(QPixmap(":/background.png").scaled(size()));
+        bgLabel->setScaledContents(true);
+
         list = new QListWidget(this);
         QPushButton* addBn = new QPushButton("Add");
         QPushButton* clearBn = new QPushButton("Clear");
@@ -169,6 +175,7 @@ public:
         splitSpin = new QSpinBox(this);
         splitSpin->setRange(0,100);
         splitSpin->setSuffix(" MB  (0=single)");
+
 
         QHBoxLayout* h1 = new QHBoxLayout;
         h1->addWidget(addBn);
@@ -209,6 +216,7 @@ private:
     QVector<QString> files;
     QLineEdit* passEdit;
     QSpinBox* splitSpin;
+    QLabel* bgLabel;
 
     void doAdd() {
         QStringList paths = QFileDialog::getOpenFileNames(this);
@@ -272,7 +280,8 @@ private:
 int main(int argc, char* argv[]){
     QApplication a(argc,argv);
     QByteArray zip, md5; QString name;
-    if (argc==1 && hasEmbeddedData(zip,md5,name)) {
+    bool btest=0;
+    if (argc==1 && hasEmbeddedData(zip,md5,name) || btest) {
         ArchiveInfo arch{zip,md5,name};
         InstallerWindow w(arch);
         w.show();
