@@ -130,7 +130,8 @@ private slots:
 
         // construct unzip command
         QStringList args;
-        args << "-o" << tmpZip << "-d" << outPath;
+     //   args << "-o" << tmpZip << "-d" << outPath;
+          args << "-o" << tmpZip;
         if (!passEdit->text().isEmpty()) args << "-P" << passEdit->text();
 
         QProcess proc;
@@ -225,6 +226,7 @@ public:
          QHBoxLayout* h3 = new QHBoxLayout;
         h3->addWidget(new QLabel("path:"));
         h3->addWidget(pathEdit);
+        pathEdit->setText("puts files back where they came from for now");
 
         QVBoxLayout* main = new QVBoxLayout(this);
         main->addWidget(list);
@@ -302,21 +304,15 @@ QString appName=fileNameOnly;
                     << "    <string>" << appName << "</string>\n"
                     << "    <key>CFBundleIdentifier</key>\n"
                     << "    <string>com.yourcompany." << appName.toLower() << "</string>\n"
+                    << "    <key>CFBundleIconFile</key>\n"
+                    << "    <string>mac128.png</string>\n"
                     << "    <key>CFBundleVersion</key>\n"
                     << "    <string>1.0</string>\n"
                     << "    <key>CFBundlePackageType</key>\n"
                     << "    <string>APPL</string>\n"
                     << "</dict>\n</plist>";
-
                 //       QFile::copy(":/resources/icon.icns", resourcesPath + "/icon.icns");
-                // Add to plist:
-                //       out << "    <key>CFBundleIconFile</key>\n"
-               //            << "    <string>icon.icns</string>\n";
                 plistFile.close();
-
-
-
-
             }
 #endif
 
@@ -326,8 +322,8 @@ QString appName=fileNameOnly;
         QString tmpZip = "/tmp/payload.zip";
         QStringList args;
         if (!passEdit->text().isEmpty()) {
-            args << "-rj" << "-P" << passEdit->text();
-        } else args << "-rj";
+            args << "-r" << "-P" << passEdit->text();
+        } else args << "-r";
         if (splitSpin->value()>0) {
             args << "-s" << QString::number(splitSpin->value())+"m";
         }
@@ -367,9 +363,16 @@ QString appName=fileNameOnly;
         QString sourceApp = QCoreApplication::applicationDirPath();
         QString sourceFrameworks = sourceApp + "/../Frameworks";
         QString sourcePlugins = sourceApp + "/../Plugins";
+                QString sourceResources = sourceApp + "/../Resources";
         QString destFrameworks = dirOnly + "/installer.app";
 
         if (copyRecursively(sourcePlugins,destFrameworks+"/Contents/Plugins")) {
+            qDebug() << "Frameworks copied successfully.";
+        } else {
+            qWarning() << "Failed to copy Frameworks.";
+        }
+
+        if (copyRecursively(sourceResources,destFrameworks+"/Contents/Resources")) {
             qDebug() << "Frameworks copied successfully.";
         } else {
             qWarning() << "Failed to copy Frameworks.";
