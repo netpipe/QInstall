@@ -157,6 +157,33 @@ private:
     QLabel* bgLabel;
 };
 
+
+bool copyRecursively(const QString &srcPath, const QString &dstPath) {
+    QDir srcDir(srcPath);
+    if (!srcDir.exists())
+        return false;
+
+    QDir dstDir(dstPath);
+    if (!dstDir.exists())
+        dstDir.mkpath(".");
+
+    QFileInfoList entries = srcDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
+    for (const QFileInfo &entry : entries) {
+        QString srcFilePath = entry.filePath();
+        QString dstFilePath = dstDir.filePath(entry.fileName());
+
+        if (entry.isDir()) {
+            if (!copyRecursively(srcFilePath, dstFilePath))
+                return false;
+        } else {
+            if (!QFile::copy(srcFilePath, dstFilePath))
+                return false;
+            QFile::setPermissions(dstFilePath, entry.permissions()); // Copy permissions too
+        }
+    }
+    return true;
+}
+
 // Builder Window
 class BuilderWindow : public QWidget {
     Q_OBJECT
@@ -280,7 +307,16 @@ QString appName=fileNameOnly;
                     << "    <key>CFBundlePackageType</key>\n"
                     << "    <string>APPL</string>\n"
                     << "</dict>\n</plist>";
+
+                //       QFile::copy(":/resources/icon.icns", resourcesPath + "/icon.icns");
+                // Add to plist:
+                //       out << "    <key>CFBundleIconFile</key>\n"
+               //            << "    <string>icon.icns</string>\n";
                 plistFile.close();
+
+
+
+
             }
 #endif
 
@@ -327,7 +363,27 @@ QString appName=fileNameOnly;
         QString targetBinary = macosPath + "/" + appName;
         QFile::copy(sourceBinary, targetBinary);
         QFile(targetBinary).setPermissions(QFileDevice::ExeOwner | QFileDevice::ReadOwner |     QFileDevice::ExeUser  | QFileDevice::ReadUser);
+
+        QString sourceApp = QCoreApplication::applicationDirPath();
+        QString sourceFrameworks = sourceApp + "/../Frameworks";
+        QString sourcePlugins = sourceApp + "/../Plugins";
+        QString destFrameworks = dirOnly + "/installer.app";
+
+        if (copyRecursively(sourcePlugins,destFrameworks+"/Contents/Plugins")) {
+            qDebug() << "Frameworks copied successfully.";
+        } else {
+            qWarning() << "Failed to copy Frameworks.";
+        }
+
+        if (copyRecursively(sourceFrameworks, destFrameworks+"/Contents/Frameworks")) {
+            qDebug() << "Frameworks copied successfully.";
+        } else {
+            qWarning() << "Failed to copy Frameworks.";
+        }
+
+
 #endif
+
         QMessageBox::information(this,"Done","Installer created");
     }
 };
