@@ -1,4 +1,4 @@
-// BEGIN single-file installer/builder with ZIP & GUI extractor
+﻿// BEGIN single-file installer/builder with ZIP & GUI extractor
 #include <QApplication>
 #include <QCoreApplication>
 #include <QtWidgets>
@@ -251,6 +251,40 @@ private:
         QString save=QFileDialog::getSaveFileName(this,"Save As","installer","All (*)");
         if (save.isEmpty()) return;
 
+        QFileInfo info(save);
+            QString fileNameOnly = info.fileName();  // ✅ just "installer" or "something.app"
+               QString dirOnly = info.absolutePath();
+QString appName=fileNameOnly;
+               #ifdef __APPLE__
+
+               QString macosPath = dirOnly + "/installer.app" + "/Contents/MacOS";
+               QDir().mkpath(macosPath);  // ✅ Creates Contents and MacOS if they don't exist
+
+            QString plistPath =  dirOnly + "/installer.app" +  "/Contents" + "/Info.plist";
+
+            QFile plistFile(plistPath);
+            if (plistFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                QTextStream out(&plistFile);
+                out << R"(<?xml version="1.0" encoding="UTF-8"?>)"
+                    << "\n"
+                    << R"(<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">)"
+                    << "\n"
+                    << R"(<plist version="1.0">)"
+                    << "\n<dict>\n"
+                    << "    <key>CFBundleExecutable</key>\n"
+                    << "    <string>" << appName << "</string>\n"
+                    << "    <key>CFBundleIdentifier</key>\n"
+                    << "    <string>com.yourcompany." << appName.toLower() << "</string>\n"
+                    << "    <key>CFBundleVersion</key>\n"
+                    << "    <string>1.0</string>\n"
+                    << "    <key>CFBundlePackageType</key>\n"
+                    << "    <string>APPL</string>\n"
+                    << "</dict>\n</plist>";
+                plistFile.close();
+            }
+#endif
+
+
         QFile::remove("/tmp/payload.zip");
 
         QString tmpZip = "/tmp/payload.zip";
@@ -272,7 +306,8 @@ private:
         QByteArray md=QCryptographicHash::hash(data, QCryptographicHash::Md5);
         z.close();
 
-        QFile out(save);
+
+        QFile out(dirOnly + "/" + fileNameOnly);
         if (!out.open(QIODevice::WriteOnly)) return;
         QFile self(QCoreApplication::applicationFilePath());
         if (!self.open(QIODevice::ReadOnly)) return;
@@ -286,6 +321,13 @@ private:
         //quint64 off = out.pos() - (data.size()+FOOTER_SIZE);
         ds << off;
         out.close();
+
+#ifdef __APPLE__
+        QString sourceBinary = dirOnly + "/" + fileNameOnly;
+        QString targetBinary = macosPath + "/" + appName;
+        QFile::copy(sourceBinary, targetBinary);
+        QFile(targetBinary).setPermissions(QFileDevice::ExeOwner | QFileDevice::ReadOwner |     QFileDevice::ExeUser  | QFileDevice::ReadUser);
+#endif
         QMessageBox::information(this,"Done","Installer created");
     }
 };
