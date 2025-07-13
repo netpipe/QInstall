@@ -17,7 +17,10 @@ struct ArchiveInfo {
     QString name;
 };
 
+QString test;
+
 static bool hasEmbeddedData(QByteArray &outZip, QByteArray &outMd5, QString &outName) {
+
     QFile f(QCoreApplication::applicationFilePath());
     if (!f.open(QIODevice::ReadOnly)) return false;
     if (f.size() < FOOTER_SIZE) return false;
@@ -38,9 +41,10 @@ static bool hasEmbeddedData(QByteArray &outZip, QByteArray &outMd5, QString &out
     quint64 size;
     in >> size;
     in >> outMd5;
+    in >> test;
     outZip = f.read(size);
 
-
+    qDebug() << "Reading pathname" << test;
     qDebug() << "Reading footer at offset:" << (f.size() - FOOTER_SIZE);
     qDebug() << "Magic:" << magic;
     qDebug() << "Payload offset:" << offset;
@@ -66,6 +70,7 @@ public:
         bgLabel->setScaledContents(true);
 
         pathEdit = new QLineEdit(QDir::homePath(), this);
+        pathEdit->setText(test);
         QPushButton* browseBn = new QPushButton("Browse…", this);
         passEdit = new QLineEdit(this);
         passEdit->setPlaceholderText("ZIP Password (if encrypted)");
@@ -171,6 +176,7 @@ public:
         QPushButton* clearBn = new QPushButton("Clear");
         QPushButton* buildBn = new QPushButton("Build Installer");
         passEdit = new QLineEdit(this);
+        pathEdit = new QLineEdit(this);
         passEdit->setPlaceholderText("ZIP Password (optional)");
         splitSpin = new QSpinBox(this);
         splitSpin->setRange(0,100);
@@ -189,9 +195,14 @@ public:
         h2->addStretch();
         h2->addWidget(buildBn);
 
+         QHBoxLayout* h3 = new QHBoxLayout;
+        h3->addWidget(new QLabel("path:"));
+        h3->addWidget(pathEdit);
+
         QVBoxLayout* main = new QVBoxLayout(this);
         main->addWidget(list);
         main->addLayout(h1);
+                main->addLayout(h3);
         main->addLayout(h2);
         setLayout(main);
 
@@ -215,6 +226,7 @@ private:
     QListWidget* list;
     QVector<QString> files;
     QLineEdit* passEdit;
+     QLineEdit* pathEdit;
     QSpinBox* splitSpin;
     QLabel* bgLabel;
 
@@ -239,11 +251,13 @@ private:
         QString save=QFileDialog::getSaveFileName(this,"Save As","installer","All (*)");
         if (save.isEmpty()) return;
 
+        QFile::remove("/tmp/payload.zip");
+
         QString tmpZip = "/tmp/payload.zip";
         QStringList args;
         if (!passEdit->text().isEmpty()) {
-            args << "-r" << "-P" << passEdit->text();
-        } else args << "-r";
+            args << "-rj" << "-P" << passEdit->text();
+        } else args << "-rj";
         if (splitSpin->value()>0) {
             args << "-s" << QString::number(splitSpin->value())+"m";
         }
@@ -266,7 +280,7 @@ private:
         quint64 off = out.pos();
         QDataStream ds(&out);
         ds.setVersion(QDataStream::Qt_5_12);
-        ds << QFileInfo(tmpZip).fileName() << quint64(data.size()) << md;
+        ds << QFileInfo(tmpZip).fileName() << quint64(data.size()) << md << pathEdit->text();
         ds.writeRawData(data.constData(), data.size());
         ds.writeRawData(MAGIC_FOOTER,4);
         //quint64 off = out.pos() - (data.size()+FOOTER_SIZE);
