@@ -73,7 +73,7 @@ public:
 
         pathEdit = new QLineEdit(QDir::homePath(), this);
         pathEdit->setText(test);
-        QPushButton* browseBn = new QPushButton("Browse…", this);
+     //   QPushButton* browseBn = new QPushButton("Browse…", this);
         passEdit = new QLineEdit(this);
         passEdit->setPlaceholderText("ZIP Password (if encrypted)");
         passEdit->setEchoMode(QLineEdit::Password);
@@ -85,17 +85,17 @@ public:
         QGridLayout* g = new QGridLayout(this);
         g->addWidget(new QLabel("Install to:"),0,0);
         g->addWidget(pathEdit,0,1);
-        g->addWidget(browseBn,0,2);
+     //   g->addWidget(browseBn,0,2);
         g->addWidget(passEdit,1,0,1,3);
         g->addWidget(installBn,2,0,1,3);
         g->addWidget(progress,3,0,1,3);
         g->addWidget(logView,4,0,1,3);
         setLayout(g);
 
-        connect(browseBn, &QPushButton::clicked, this, [&]() {
-            QString dir = QFileDialog::getExistingDirectory(this,"Select Folder");
-            if (!dir.isEmpty()) pathEdit->setText(dir);
-        });
+    //    connect(browseBn, &QPushButton::clicked, this, [&]() {
+    //        QString dir = QFileDialog::getExistingDirectory(this,"Select Folder");
+    //       if (!dir.isEmpty()) pathEdit->setText(dir);
+    //    });
         connect(installBn, &QPushButton::clicked, this, &InstallerWindow::startInstall);
     }
 
