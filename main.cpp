@@ -8,6 +8,14 @@
 #include <QFileInfo>
 #include <QDirIterator>
 
+
+//todo
+// GUI progressbar
+// encryption on payload files
+// Remote fallback (download missing pieces)
+//multi archive md5 support possibly by appending a list of them instead of payload.zip
+
+
 bool hasPayload=0;
 
 #define MAGIC_FOOTER "QPKG"
@@ -350,11 +358,16 @@ QString appName=fileNameOnly;
                 plistFile.close();
             }
 #endif
+            QString tmpZip;
 
+            if (splitSpin->value()>0) {
+               tmpZip = QApplication::applicationDirPath() + "/payload.zip";
+               QFile::remove(tmpZip);
+            }else{
+                 QFile::remove("/tmp/payload.zip");
+                  tmpZip = "/tmp/payload.zip";
+            }
 
-        QFile::remove("/tmp/payload.zip");
-
-        QString tmpZip = "/tmp/payload.zip";
         QStringList args;
         if (!passEdit->text().isEmpty()) {
             args << "-r" << "-P" << passEdit->text();
