@@ -204,7 +204,11 @@ public:
 
         bgLabel = new QLabel(this);
         bgLabel->resize(500,400);
-        bgLabel->setPixmap(QPixmap(":/background.png").scaled(size()));
+        if (!QFile::exists(QApplication::applicationDirPath() + "/background.png")){
+            bgLabel->setPixmap(QPixmap(":/background.png").scaled(size()));
+        }else{
+            bgLabel->setPixmap(QPixmap(QApplication::applicationDirPath() + "/background.png").scaled(size()));
+        }
         bgLabel->setScaledContents(true);
 
         list = new QListWidget(this);
