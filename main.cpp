@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QDirIterator>
 
+bool hasPayload=0;
+
 #define MAGIC_FOOTER "QPKG"
 #define FOOTER_SIZE (4 + sizeof(quint64))
 
@@ -274,6 +276,29 @@ private:
         }
     }
 
+    quint64 findFooterOffset(const QByteArray &binary) {
+      //  const QByteArray MAGIC_FOOTER = "ZEND";  // Replace with yours
+     //   const int FOOTER_SIZE = 4;
+        const int OFFSET_SIZE = sizeof(quint64);
+        const int TAIL_SIZE = FOOTER_SIZE + OFFSET_SIZE;
+
+        if (binary.size() < TAIL_SIZE)
+            return 0;  // Too small to have footer
+
+        QByteArray footer = binary.right(TAIL_SIZE);
+        QByteArray footerMagic = footer.mid(OFFSET_SIZE, FOOTER_SIZE);
+
+        if (footerMagic != MAGIC_FOOTER)
+            return 0;  // Not a valid embedded archive
+
+        QDataStream ds(footer.left(OFFSET_SIZE));
+        ds.setByteOrder(QDataStream::BigEndian);  // Match how you wrote the offset
+        quint64 offset = 0;
+        ds >> offset;
+
+        return offset;
+    }
+
     void doBuild() {
         if (files.isEmpty()) return;
 
@@ -286,10 +311,10 @@ private:
 QString appName=fileNameOnly;
                #ifdef __APPLE__
 
-               QString macosPath = dirOnly + "/installer.app" + "/Contents/MacOS";
+               QString macosPath = dirOnly + "/" + fileNameOnly + ".app" + "/Contents/MacOS";
                QDir().mkpath(macosPath);  // ✅ Creates Contents and MacOS if they don't exist
 
-            QString plistPath =  dirOnly + "/installer.app" +  "/Contents" + "/Info.plist";
+            QString plistPath =  dirOnly + "/" + fileNameOnly + ".app" +  "/Contents" + "/Info.plist";
 
             QFile plistFile(plistPath);
             if (plistFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -343,7 +368,16 @@ QString appName=fileNameOnly;
         if (!out.open(QIODevice::WriteOnly)) return;
         QFile self(QCoreApplication::applicationFilePath());
         if (!self.open(QIODevice::ReadOnly)) return;
+
+if (!hasPayload){
         out.write(self.readAll());
+        }else{
+        QByteArray binaryData = self.readAll();
+        quint64 payloadOffset = findFooterOffset(binaryData); // your logic
+        QByteArray cleanBinary = binaryData.left(payloadOffset);
+        out.write(cleanBinary);
+}
+
         quint64 off = out.pos();
         QDataStream ds(&out);
         ds.setVersion(QDataStream::Qt_5_12);
@@ -364,7 +398,7 @@ QString appName=fileNameOnly;
         QString sourceFrameworks = sourceApp + "/../Frameworks";
         QString sourcePlugins = sourceApp + "/../Plugins";
                 QString sourceResources = sourceApp + "/../Resources";
-        QString destFrameworks = dirOnly + "/installer.app";
+        QString destFrameworks = dirOnly + "/" + fileNameOnly + ".app" ;
 
         if (copyRecursively(sourcePlugins,destFrameworks+"/Contents/Plugins")) {
             qDebug() << "Frameworks copied successfully.";
@@ -384,7 +418,7 @@ QString appName=fileNameOnly;
             qWarning() << "Failed to copy Frameworks.";
         }
 
-
+QFile::remove(save);
 #endif
 
         QMessageBox::information(this,"Done","Installer created");
@@ -396,7 +430,10 @@ int main(int argc, char* argv[]){
     QApplication a(argc,argv);
     QByteArray zip, md5; QString name;
     bool btest=0;
-    if (argc==1 && hasEmbeddedData(zip,md5,name) || btest) {
+    if (hasEmbeddedData(zip,md5,name))
+    hasPayload=1;
+
+    if (argc==1 && hasPayload || btest) {
         ArchiveInfo arch{zip,md5,name};
         InstallerWindow w(arch);
         w.show();
